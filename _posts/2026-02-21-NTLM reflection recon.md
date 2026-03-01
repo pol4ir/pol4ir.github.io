@@ -92,6 +92,9 @@ As there seems to be no reliable detection method beyond UBR-based checks was av
 <a href="/assets/posts/2026-02-21-NTLM reflection recon/vulnerable.png" class="popup img-link"><img src="/assets/posts/2026-02-21-NTLM reflection recon/vulnerable.png" loading="lazy" alt="null"></a>
 <em>Recon on unpatched system</em>
 
+The same results were observed when testing against LDAP; however, the SMB-based detection proved to be more reliable in practice.
+The idea is to fall back to UBR-based detection when SMB/LDAP detection fails, this may be added to the script in the future. Other protocols also remain to be tested, perhaps when time allows.
+
 <h2 id="conclusion">Conclusion</h2>
 
 NTLM reflection is a powerful technique that can be used to bypass modern mitigations and perform various attacks, including RCE. It’s crucial for both attackers and defenders to understand the underlying mechanisms of NTLM local authentication and how NTLM reflection operates to effectively identify and mitigate potential vulnerabilities. As new CVEs continue to emerge, staying informed about the latest developments in this area is essential for maintaining robust security postures. 
