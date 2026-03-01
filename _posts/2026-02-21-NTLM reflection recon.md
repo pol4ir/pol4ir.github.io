@@ -14,7 +14,7 @@ Do you want to skip the technical details and jump straight to the detection par
 
 Publicly available information on this mechanism, and on the Reserved field in particular, is scarce. At the time of writing, Microsoft has yet to officially document this field in the <code class="language-plaintext highlighter-rouge">MS-NLMP</code> specification, which makes understanding its behavior and purpose considerably more challenging.
 
-<a href="/assets\posts\2026-02-21-NTLM reflection recon\reserved.png" class="popup img-link"><img src="/assets\posts\2026-02-21-NTLM reflection recon\reserved.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2026-02-21-NTLM reflection recon/reserved.png" class="popup img-link"><img src="/assets/posts/2026-02-21-NTLM reflection recon/reserved.png"  loading="lazy" alt="null"></a>
 <em>Reserved field</em>
 
 Local NTLM authentication is a mechanism designed specifically for scenarios where client and server reside on the same machine. For an in-depth analysis, Synacktiv's blog post covers it thoroughly; what follows here is a concise overview of how it works.
