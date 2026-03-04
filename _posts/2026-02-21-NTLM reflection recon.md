@@ -1,15 +1,14 @@
 ---
-title: "NTLM reflection: Non-Coercive unauthenticated detection"
+title: "NTLM reflection"
 date: 2026-02-21 10:00:00 +0000
 categories: [CVEs]
-tags: [lateral movement, rce, smb, winrm, ldap, esc8, cve, ntlm reflection, local ntlm authentication, ntlm relay,ntlmrelayx, UBR, remote registry, MIC, coercion, CVE-2025-33073, CVE-2025-58726, CVE-2025-54918, GhostSPN, NTLM MIC bypass ,NTLMSSP, signing, channel binding token CBT, EPA, DRSUAPI, DCSync, Impacket, privilege escalation · red team · penetration testing]
+tags: [lateral movement, rce, smb, winrm, ldap, esc8, cve, ntlm reflection, local ntlm authentication, ntlm relay,ntlmrelayx, UBR, remote registry, MIC, coercion, CVE-2025-33073, CVE-2025-58726, CVE-2025-54918, GhostSPN, NTLM MIC bypass ,NTLMSSP, signing, channel binding token CBT, EPA, DRSUAPI, DCSync, Impacket, privilege escalation, red team , penetration testing]
 image: /assets/posts/2026-02-21-NTLM reflection recon/chart2.png
 
 ---
 
 It has been roughly eight months since Synacktiv published their blog post on <a href="https://www.synacktiv.com/en/publications/ntlm-reflection-is-dead-long-live-ntlm-reflection-an-in-depth-analysis-of-cve-2025">NTLM reflection</a>, yet this technique remains a consistent finding in my assessments. Since then, additional CVEs related to NTLM reflection have surfaced, and some confusion still exists around the conditions under which they are exploitable, particularly regarding signing, CBT, and similar mitigations. This makes it all the more important to understand how to correctly identify and classify each of them, especially from an attacker's perspective. Before diving into that, a solid foundation is necessary, starting with a clear explanation of what NTLM reflection is and what actually happens under the hood.
 
-Do you want to skip the technical details and jump straight to the detection part? Click <a href="#ncudetection">here</a>.
 <h2 id="lntlmauth">Local NTLM authentication</h2>
 
 Publicly available information on this mechanism, and on the Reserved field in particular, is scarce. At the time of writing, Microsoft has yet to officially document this field in the <code class="language-plaintext highlighter-rouge">MS-NLMP</code> specification, which makes understanding its behavior and purpose considerably more challenging.
@@ -80,20 +79,9 @@ Since the module didn’t include support for  <code class="language-plaintext h
 
 However, while writing the module I thought that relying on the Remote Registry is not ideal: it isn’t enabled by default on workstations, and even when it is, administrators can easily disable it. Because of this limitation, I wanted to simulate the same network traffic by crafting a fake local NTLM authentication and observing how the server responds. The idea was simple: analyze the server’s return message and see whether the response differs depending on whether the patch is installed.
 
-I <a href="https://github.com/pol4ir/impacket">modified Impacket</a> and successfully reproduced the same network traffic, but I didn’t observe any meaningful difference in the server’s responses across the various scenarios. The authentication phase completed without issues, but as soon as the client attempted to perform additional operations, an error occurred. I’m not entirely certain, but the most plausible explanation is that the server cannot find the token in the context it previously created for the client, the one referenced in the Reserved field. Without that token, the server is unable to impersonate the client and therefore cannot proceed with any further operations. If anyone has dug deeper into this behavior, feel free to reach out.
+I <a href="https://github.com/pol4ir/impacket">modified Impacket</a> and successfully reproduced the same network traffic (also for smb), but I didn’t observe any meaningful difference in the server’s responses across the various scenarios. The authentication phase completed without issues, but as soon as the client attempted to perform additional operations, an error occurred. I’m not entirely certain, but the most plausible explanation is that the server cannot find the token in the context it previously created for the client, the one referenced in the Reserved field. Without that token, the server is unable to impersonate the client and therefore cannot proceed with any further operations. If anyone has dug deeper into this behavior, feel free to reach out.
 
-<h3 id="ncudetection">Non-Coercive unauthenticated detection</h3>
-By experimenting further with the NTLM negotiation flags in a black-box approach and analyzing the resulting traffic, I noticed a behavioral difference between patched and unpatched systems. The key distinction does not lie in the server's response during the local NTLM authentication relay itself, but rather during the coercion attempt. By replicating that same traffic, I was able to trigger a  <code class="language-plaintext highlighter-rouge">STATUS_INVALID_PARAMETER</code> response on a patched system, while on an unpatched one the authentication completed successfully. This suggests that after the patch, the server no longer accepts that specific combination of flags and other values (such as an empty username), returning that NT status error instead.<br> The only information I was able to find online regarding the CVE-2025-33073 patch points to a client-side fix in the SMB client involving a Kerberos-related function: `ksecdd!CredUnmarshalTargetInfo`. Further investigation would be needed, likely through reversing the relevant DLLs, to confirm exactly under which conditions that NT status is returned when NTLM is involved.
-
-As there seems to be no reliable detection method beyond UBR-based checks was available, I ended up writing a <a href="https://github.com/pol4ir/CVE-2025-33073">script</a> to perform detection in a more consistent way. 
-<a href="/assets/posts/2026-02-21-NTLM reflection recon/notvulnerable.png" class="popup img-link"><img src="/assets/posts/2026-02-21-NTLM reflection recon/notvulnerable.png" loading="lazy" alt="null"></a>
-<em>Recon on patched system</em>
-
-<a href="/assets/posts/2026-02-21-NTLM reflection recon/vulnerable.png" class="popup img-link"><img src="/assets/posts/2026-02-21-NTLM reflection recon/vulnerable.png" loading="lazy" alt="null"></a>
-<em>Recon on unpatched system</em>
-
-The same results were observed when testing against LDAP; however, the SMB-based detection proved to be more reliable in practice.
-The idea is to fall back to UBR-based detection when SMB/LDAP detection fails, this may be added to the script in the future. Other protocols also remain to be tested, perhaps when time allows.
+As I conduct further tests, I believe that relying on different error statuses may not be a viable approach. The network traffic is largely the same, except for the coercion traffic that occurs when the client is unpatched. This is because the patch <i>"prevents the exploitation of the vulnerability by removing the ability to coerce machines into authenticating via Kerberos by registering a DNS record with marshalled target information."</i> I also expect the same behavior for NTLM, since coercion does not occur on patched targets.
 
 <h2 id="conclusion">Conclusion</h2>
 
@@ -109,7 +97,7 @@ Security updates related to NTLM reflection:<br>
 </blockquote>
 
 <br>
-As usual, the post concludes with a summary table covering everything discussed, designed to help you determine the conditions under which each NTLM reflection CVE is exploitable. Please note that the table reflects my own testing and understanding, so if you spot any inaccuracies or run into issues with the script (still under testing), feel free to reach out.
+As usual, the post concludes with a summary table covering everything discussed, designed to help you determine the conditions under which each NTLM reflection CVE is exploitable. 
 
 <a href="/assets/posts/2026-02-21-NTLM reflection recon/chart2.png" class="popup img-link"><img src="/assets/posts/2026-02-21-NTLM reflection recon/chart2.png" loading="lazy" alt="null"></a>
 <em>Summary chart</em>
