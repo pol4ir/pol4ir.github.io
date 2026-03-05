@@ -81,6 +81,7 @@ However, while writing the module I thought that relying on the Remote Registry 
 
 I <a href="https://github.com/pol4ir/impacket">modified Impacket</a> and successfully reproduced the same network traffic (also for smb), but I didn’t observe any meaningful difference in the server’s responses across the various scenarios. The authentication phase completed without issues, but as soon as the client attempted to perform additional operations, an error occurred. I’m not entirely certain, but the most plausible explanation is that the server cannot find the token in the context it previously created for the client, the one referenced in the Reserved field. Without that token, the server is unable to impersonate the client and therefore cannot proceed with any further operations. If anyone has dug deeper into this behavior, feel free to reach out.
 
+
 As I conduct further tests, I believe that relying on different error statuses may not be a viable approach. The network traffic is largely the same, except for the coercion traffic that occurs when the client is unpatched. This is because the patch <i>"prevents the exploitation of the vulnerability by removing the ability to coerce machines into authenticating via Kerberos by registering a DNS record with marshalled target information."</i> I also expect the same behavior for NTLM, since coercion does not occur on patched targets.
 
 <h2 id="conclusion">Conclusion</h2>
