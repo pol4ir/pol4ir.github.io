@@ -144,7 +144,7 @@ The same applies to the "console sessions" stored under the registry keys `HKLM:
 
 
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/rdpshadow.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedp2/rdpshadow.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/rdpshadow.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/rdpshadow.png" loading="lazy" alt="null"></a>
 <em>RDP Shadowing with a non-administrative user</em>
 
 Note that if the screen gets locked, the user switches to a different account, or a UAC dialog pops up, the shadow window automatically pauses and you'll see the two bar pause icon and stays that way until control returns to the user. The session then picks back up on its own as soon as they're back.

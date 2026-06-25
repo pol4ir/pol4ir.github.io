@@ -38,8 +38,8 @@ As a final consideration, reliability often comes with significant execution tim
 <h2 id="ebhound">Extending Bloodhound</h2>
 The tool provides a `-bloodhound` switch that allows it to act as a collector for BloodHound Legacy, extending its overall capabilities.
 
-<a href="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!/bhound.png" class="popup img-link"><img src="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!/bhound.png" loading="lazy" alt="null"></a>
-<em>No CanPSRemote edge</em>mhound
+<a href="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!/BHOUND.png" class="popup img-link"><img src="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!/BHOUND.png" loading="lazy" alt="null"></a>
+<em>No CanPSRemote edge</em>
 
 Run MovementHound:
 
@@ -56,7 +56,7 @@ PS C:\tmp> Invoke-MovementHound -p wsman -bloodhound
        WINRMC5@MINI.LAB                              --[CanPSRemote   (WinRM/CIM)]--> dc.mini.lab
 [BH] Drag-and-drop the ZIP into BloodHound Legacy to import.
 ```
-<a href="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!/mhound.png" class="popup img-link"><img src="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!/mhound.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!/MHOUND.png" class="popup img-link"><img src="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!/MHOUND.png" loading="lazy" alt="null"></a>
 <em>CanPSRemote edge</em>
 
 <H2 id="wnext">What's next</H2>
