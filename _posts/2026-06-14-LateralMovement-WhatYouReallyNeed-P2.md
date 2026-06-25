@@ -3,7 +3,7 @@ title: Windows Lateral Movement - What You Really Need Part 2
 date: 2026-06-14 10:00:00 +0000
 categories: [lateral movement]
 tags: [lateral movement, rce, ssh, rdp, remote registry, minimal rights, rdp shadow, task scheduling, rpc, acl, RACE, enumeration,network provider,services,ghost task, autorun,quser,qwinsta,access mask,com hijack,SDDL,Remote Credential Guard (RCG), restricted admin mode,movement hound,mhound,invoke-movementhound,User Right Assignment (URA)]
-image: /assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/chart2.png
+image: /assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/chart2.png
 ---
 
 In the [previous post](https://pol4ir.github.io/posts/LateralMovement-WhatYouReallyNeed/), we explored various techniques for lateral movement on Windows systems, including WMI, CIM, WinRM, and more. We also discussed the minimum requirements for each method and how to bypass certain restrictions. In this follow-up post, we will delve into additional techniques. We will also examine the specific requirements for each method and how to effectively utilize them in different scenarios.
@@ -40,7 +40,7 @@ The second layer is a deliberate escape hatch. The subkey `HKLM\SYSTEM\CurrentCo
 
 The permissions required to operate on individual keys instead boil down to `SetValue` or `CreateSubKey`, depending on the specific action. A user may already possess these rights, or they can obtain them indirectly by using `WriteDac` or `WriteOwner` to grant themselves full control.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.P2md/rr.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.P2md/rr.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/rr.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/rr.png" loading="lazy" alt="null"></a>
 <em>Remote Registry: Accessing some keys</em>
 
 There are different types of keys that may allow remote access, usually only after a reboot, when a specific event is triggered, or when the associated service is restarted. This is because the new registry values are loaded only at that point. Let’s look at the most common ones.
@@ -62,7 +62,7 @@ In particular, the `GhostTask` technique leverages this by creating a task with 
 
 Thanks to @netero1010 for GhostTask.exe. I wrote a PowerShell version (Invoke‑GhostTask) that executes it. The main reason is that GhostTask.exe, before adding or modifying a task, performs a registry check through the `GetProductName` function. This check can be bypassed (although the key is readable by everyone by default, its ACLs may be changed for any reason) provided that you run the script from an operating system that closely matches the target one.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.P2md/ghostask.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.P2md/ghostask.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/ghostask.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/ghostask.png" loading="lazy" alt="null"></a>
 <em>Remote GhostTask</em>
 
 At startup, the Task Scheduler service loads its tasks into memory based on what's stored in the registry. If you modify that registry data afterward, Task Scheduler doesn't pick up the change automatically; the in-memory copy of the task stays out of sync with the registry. To force a refresh, you've got three options: restart the Task Scheduler service, push an update to the task via schtasks, or wait for a reboot of the machine. Worth keeping in mind: the schtasks update path is also the only one of the three that syncs the change to the task's underlying XML definition file.
@@ -74,14 +74,14 @@ It implements the Network Provider API, which allows it to interact with the Win
 
 Network providers are registered under `HKLM\SYSTEM\CurrentControlSet\Control\NetworkProvider\Order` and `HKLM\SYSTEM\CurrentControlSet\Services`. The `ProviderOrder` value is a `REG_SZ` that lists the network providers in order of preference. By modifying this value, an attacker can insert a malicious remote provider at the top of the list, causing it to be loaded before legitimate providers. This can be used for credential theft at user logon (`NPLogonNotify`) or when changing passwords (`NPPasswordChangeNotify`).
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.P2md/rnp.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.P2md/rnp.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/rnp.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/rnp.png" loading="lazy" alt="null"></a>
 <em>Remote network provider</em>
 
 <h3 id="autorun">Autorun</h3>
 
 Autorun entries are stored in different locations. These entries allow programs to execute automatically when a user logs in. An attacker can add a malicious entry to these locations to achieve persistence or lateral movement.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.P2md/autorun.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.P2md/autorun.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/autorun.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/autorun.png" loading="lazy" alt="null"></a>
 <em>Autorun keys</em>
 
 <h3 id="com-hijacks">Remote COM Hijacks</h3>
@@ -102,7 +102,7 @@ If a user has only `SeRemoteInteractiveLogonRight` but is not a member of Remote
 Conversely, if a user is in Remote Desktop Users but lacks `SeRemoteInteractiveLogonRight`, `NLA` will succeed but the RDP session will fail, typically with the error:
 “Logon failure: the user has not been granted the requested logon type.”
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.P2md/rdp.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.P2md/rdp.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/rdp.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/rdp.png" loading="lazy" alt="null"></a>
 <em>RDP access with Remote Credential Guard</em>
 
 Note that discussing Restricted Admin Mode in the context of a non‑administrative user doesn’t make sense, as it only works for accounts that are local administrators. This limitation does not apply to Remote Credential Guard (RCG), which can be used by non‑administrative users.
@@ -144,7 +144,7 @@ The same applies to the "console sessions" stored under the registry keys `HKLM:
 
 
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.P2md/rdpshadow.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.P2md/rdpshadow.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/rdpshadow.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedp2/rdpshadow.png" loading="lazy" alt="null"></a>
 <em>RDP Shadowing with a non-administrative user</em>
 
 Note that if the screen gets locked, the user switches to a different account, or a UAC dialog pops up, the shadow window automatically pauses and you'll see the two bar pause icon and stays that way until control returns to the user. The session then picks back up on its own as soon as they're back.
@@ -171,7 +171,7 @@ The complementary directives `DenyUsers` and `DenyGroups` work in the opposite d
 
 Without any of these directives configured, the only thing standing between an attacker and a remote shell is the validity of the credentials themselves. This is the default state on most systems and the assumption that makes lateral movement over SSH so reliable in practice.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.P2md/ssh.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.P2md/ssh.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/ssh.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/ssh.png" loading="lazy" alt="null"></a>
 <em>SSH access</em>
 
 <h2 id="ura">URA</h2>
@@ -182,11 +182,11 @@ These settings are also straightforward to enumerate. Group Policy is distribute
 
 Not every right is created equal. A handful are well known for being abusable to escalate to SYSTEM when assigned to a principal you control, so the suggestion is to focus on the most relevant ones and enumerate them.
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/URA.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/URA.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/URA.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeedP2/URA.png" loading="lazy" alt="null"></a>
 <em>URA enum</em>
 <h2 id="conclusion">Conclusion</h2>
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/chart.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/chart2.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/chart2.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed/img/chart2.png" loading="lazy" alt="null"></a>
 <em>Summary chart</em>
 
 As discussed in Part 1:

@@ -3,7 +3,7 @@ title: MovementHound - You might be missing something, move it!
 date: 2026-06-14 10:00:00 +0000
 categories: [lateral movement]
 tags: [lateral movement, rce, wmi, cim, winrm, minimal rights, dcom, task scheduling, scmanager, scm, rpc, uac, acl, Find-DCOMLocalAdminAccess.ps1, microsoft policy, sc.exe, OpenService, CreateService, RACE, BloodHound, enumeration, wmiman, scshell, service reconfiguration, service creation, access mask, SDDL, movement hound, mhound, invoke-movementhound, ssh, rdp, remote registry, rdp shadow, network provider, services, ghost task, autorun, quser, qwinsta, com hijack, Remote Credential Guard (RCG), restricted admin mode, User Right Assignment (URA)]
-image: /assets/posts/2026-06-20-MovementHound - You might be missing something, move it!.md/MHoundL.png
+image: /assets/posts/2026-06-20-MovementHound - You might be missing something, move it!/MHoundL.png
 ---
 
 During my deep dive into the minimal rights required for various lateral movement techniques, I realized that many of these requirements could be streamlined. To address them properly, I initially wrote several standalone PowerShell scripts (Find‑SCMAccess, Find‑DCOMLocalAdminAccess, Invoke‑GhostTaskScan, and others). Eventually, I decided to consolidate all of them, including the ones that already existed, into a single unified script.
@@ -38,8 +38,8 @@ As a final consideration, reliability often comes with significant execution tim
 <h2 id="ebhound">Extending Bloodhound</h2>
 The tool provides a `-bloodhound` switch that allows it to act as a collector for BloodHound Legacy, extending its overall capabilities.
 
-<a href="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!.md/bhound.png" class="popup img-link"><img src="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!.md/bhound.png" loading="lazy" alt="null"></a>
-<em>No CanPSRemote edge</em>
+<a href="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!/bhound.png" class="popup img-link"><img src="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!/bhound.png" loading="lazy" alt="null"></a>
+<em>No CanPSRemote edge</em>mhound
 
 Run MovementHound:
 
@@ -56,7 +56,7 @@ PS C:\tmp> Invoke-MovementHound -p wsman -bloodhound
        WINRMC5@MINI.LAB                              --[CanPSRemote   (WinRM/CIM)]--> dc.mini.lab
 [BH] Drag-and-drop the ZIP into BloodHound Legacy to import.
 ```
-<a href="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!.md/mhound.png" class="popup img-link"><img src="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!.md/mhound.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!/mhound.png" class="popup img-link"><img src="/assets/posts/2026-06-20-MovementHound - You might be missing something, move it!/mhound.png" loading="lazy" alt="null"></a>
 <em>CanPSRemote edge</em>
 
 <H2 id="wnext">What's next</H2>
