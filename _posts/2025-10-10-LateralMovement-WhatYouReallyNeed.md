@@ -465,7 +465,7 @@ In addition, if you use WMI over DCOM you only need “Remote Activation” in t
 Instead, if you use WMI over WinRM, you must be a member of the “Remote Management Users” group. For example, this opens up the possibility of being a member of the “Remote Management Users” group without being able to laterally move using WinRM (for instance, if the group does not have the Execute (Invoke) permission on the PSSession), while still being able to execute commands remotely via WMI.
 
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/wmiman.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/wmiMAN.png"  loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/wmiman.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/wmiman.png"  loading="lazy" alt="null"></a>
 <em>"WMIMAN"</em>
 
 When using `Win32_Process.Create`, the call may return `ReturnValue = 8`, which the documentation describes only as "Unknown failure." This is a catch all code: it tells you only that the failure was none of the other documented ones (Access Denied, Insufficient Privilege, Path Not Found, Invalid Parameter). It can therefore have several causes but one common, by design cause is tied to how a user's registry hive is loaded during remote process creation.
@@ -558,7 +558,7 @@ That said, considering we've already discussed enabling lateral movement for non
 
 <h2 id="conclusion">Conclusion</h2>
 
-<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/chart.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/chart2.png" loading="lazy" alt="null"></a>
+<a href="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/chart2.png" class="popup img-link"><img src="/assets/posts/2025-10-10-LateralMovement-WhatYouReallyNeed.md/img/chart2.png" loading="lazy" alt="null"></a>
 <em>Summary chart</em>
 
 Although the configuration we discussed is not the default, Windows bases most of its access control on DACLs, and in a real engagement we cannot simply assume that default configurations have been left as is for at least two reasons:
